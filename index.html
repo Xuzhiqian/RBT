@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+　　<title>区间树</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,minimum-scale=1.0, maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="viz.js"></script>
+    <style type="text/css"> 
+    	body{
+    		text-align: center;
+
+    	}
+		textarea {
+			margin-top:30px;
+			font-family:'Courier New';
+			width:20em;
+			height:10em;
+		}
+		#map_container {
+			margin-top: 40px;
+		}
+	</style> 
+</head>
+<body>
+	<h1>区间树</h1>
+    <div><textarea id="input"></textarea></div>
+    <div><button id="gen" onclick='genTree()'>生成</button></div>
+    <div id="map_container"></div>
+    <script src="rbt.js"></script>
+    <script>
+    	var R = RBT();
+    	var drawGraph = function(T) {
+    		var nindex = 1;
+    		let s = 'digraph G {node[style=filled fontname="Courier New" fontcolor=white] ';
+    		var walk = function(T, findex) {
+    			if (!T.nil) {
+    				if (!T.left.nil) {
+    					i = nindex++;
+    					s = s + 'a' + i + ' [color=' + (T.left.color===1 ? 'black' : 'red') + ' label=' + T.left.key + ']; ';
+    					s = s + 'a' + findex + '->a' + i + ' ';
+    					walk(T.left, i);
+    				}
+    				if (!T.right.nil) {
+    					i = nindex++;
+    					s = s + 'a' + i + ' [color=' + (T.right.color===1 ? 'black' : 'red') + ' label=' + T.right.key + ']; ';
+    					s = s + 'a' + findex + '->a' + i + ' ';
+    					walk(T.right, i);
+    				}
+    			}
+    		}
+    		s = s + 'a0 [color=black label=' + T.root.key + ']; ';
+    		walk(T.root, 0);
+			s = s + '}';
+			return s;
+		};
+		var genTree = function() {
+			T = R.newTree();
+    		document.getElementById('input').value.split(',').forEach((num)=>{
+    			R.insert(T, R.newNode(parseFloat(num)));
+    		});
+    		document.getElementById('map_container').innerHTML = Viz(drawGraph(T), "svg");
+		};
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
