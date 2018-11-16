@@ -17,6 +17,10 @@ var RBT = function() {
 			x.p[r] = y;
 		y[l] = x;
 		x.p = y;
+
+		/*	max maintainence */
+		y.max = x.max;
+		x.max = Math.max(x.key.high, x[l].max, x[r].max);
 	};
 
 	var insertFixUpMain = function(T, z, l, r) {
@@ -53,7 +57,7 @@ var RBT = function() {
 		x = T.root;
 		while (!x.nil) {
 			y = x;
-			if (z.key < x.key)
+			if (T.cpr(z.key ,x.key) < 0)
 				x = x.left;
 			else
 				x = x.right;
@@ -61,12 +65,21 @@ var RBT = function() {
 		z.p = y;
 		if (y.nil)
 			T.root = z;
-		else if (z.key < y.key)
+		else if (T.cpr(z.key, y.key) < 0)
 			y.left = z;
 		else
 			y.right = z;
 		z.left = T.nil;
 		z.right = T.nil;
+
+		/*	max maintainence */
+		z.max = z.key.high;
+		let m = z.p;
+		while (!m.nil) {
+			m.max = Math.max(m.key.high, m.left.max, m.right.max);
+			m = m.p;
+		}
+
 		z.color = RED;
 		insertFixUp(T, z);
 	};
@@ -149,13 +162,34 @@ var RBT = function() {
 			y.left.p = y;
 			y.color = z.color;
 		}
+		let m = x.p;
+		while (!m.nil) {
+			m.max = Math.max(m.key.high, m.left.max, m.right.max);
+			m = m.p;
+		}
 		if (y_org_color === BLACK)
 			deleteFixUp(T, x);
 	};
 
-	R.newTree = function() {
+	R.search = function(T, i) {
+		x = T.root;
+		while (!x.nil && T.cpr(i, x.key) !== 0)
+			if (!x.left.nil && x.left.max >= i.low)
+				x = x.left;
+			else 
+				x = x.right;
+		return x.key;
+	};
+
+	R.newTree = function(cpr) {
+		if (!cpr) cpr = function(a, b) {
+			if (a.high < b.low) return -1;
+			else if (a.low > b.high) return 1;
+			else return 0;
+		};
 		let T = {
-			nil : {nil : 1}
+			cpr : cpr,
+			nil : {nil : 1, max : -Infinity, color:BLACK}
 		};
 		T.root = T.nil;
 		return T;
@@ -163,7 +197,8 @@ var RBT = function() {
 
 	R.newNode = function(key) {
 		return {
-			key : key
+			key : key,
+			max : -Infinity
 		};
 	}
 

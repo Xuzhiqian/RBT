@@ -10,6 +10,10 @@
     		text-align: center;
 
     	}
+        button {
+            margin-left:1em;
+            margin-right:1em;
+        }
 		textarea {
 			margin-top:30px;
 			font-family:'Courier New';
@@ -24,42 +28,82 @@
 <body>
 	<h1>区间树</h1>
     <div><textarea id="input"></textarea></div>
-    <div><button id="gen" onclick='genTree()'>生成</button></div>
+    <div><button id="gen" onclick='genTree()'>生成</button><button id="sch" onclick='search()'>查询</button></div>
     <div id="map_container"></div>
     <script src="rbt.js"></script>
     <script>
     	var R = RBT();
+        var T;
     	var drawGraph = function(T) {
-    		var nindex = 1;
+    		var nindex = 2;
     		let s = 'digraph G {node[style=filled fontname="Courier New" fontcolor=white] ';
+            let _T = T;
     		var walk = function(T, findex) {
     			if (!T.nil) {
     				if (!T.left.nil) {
     					i = nindex++;
-    					s = s + 'a' + i + ' [color=' + (T.left.color===1 ? 'black' : 'red') + ' label=' + T.left.key + ']; ';
+                        _T[i] = T.left;
+    					s = s + 'a' + i + ' [color=' + (T.left.color===1 ? 'black' : 'red') + ' label="[' + T.left.key.low + ', ' + T.left.key.high + ']\n'+ T.left.max + '"]; ';
     					s = s + 'a' + findex + '->a' + i + ' ';
     					walk(T.left, i);
     				}
     				if (!T.right.nil) {
     					i = nindex++;
-    					s = s + 'a' + i + ' [color=' + (T.right.color===1 ? 'black' : 'red') + ' label=' + T.right.key + ']; ';
+                        _T[i] = T.right;
+    					s = s + 'a' + i + ' [color=' + (T.right.color===1 ? 'black' : 'red') + ' label="[' + T.right.key.low + ', ' + T.right.key.high + ']\n'+ T.right.max + '"]; ';
     					s = s + 'a' + findex + '->a' + i + ' ';
     					walk(T.right, i);
     				}
     			}
     		}
-    		s = s + 'a0 [color=black label=' + T.root.key + ']; ';
-    		walk(T.root, 0);
+            if (!T.root.nil) {
+    		  s = s + 'a1 [color=black label="[' + T.root.key.low + ', ' + T.root.key.high + ']\n'+ T.root.max + '"]; ';
+              _T[1] = T.root;
+    		  walk(T.root, 1);
+            }
 			s = s + '}';
 			return s;
 		};
+        var sToI = function(s) {
+            let i = s.split(',').map(s => parseFloat(s));
+            if (i[0] && i[1])
+                return {
+                    low : Math.min(i[0], i[1]),
+                    high : Math.max(i[0], i[1])
+                };
+            return null;
+        }
+        var draw = function() {
+            document.getElementById('map_container').innerHTML = Viz(drawGraph(T), "svg");
+            let c = document.getElementById("graph0").children;
+            for (let i = 0; i < c.length; i++) {
+                if (c[i].classList.value === "node") {
+                    c[i].ondblclick = function() {
+                        R.delete(T, T[this.id.slice(4)]);
+                        draw();
+                    }
+                }
+            }
+        }
 		var genTree = function() {
 			T = R.newTree();
-    		document.getElementById('input').value.split(',').forEach((num)=>{
-    			R.insert(T, R.newNode(parseFloat(num)));
-    		});
-    		document.getElementById('map_container').innerHTML = Viz(drawGraph(T), "svg");
+            document.getElementById("input").value.split('\n').forEach(s => {
+                let i = sToI(s);
+                if (i)
+                    R.insert(T, R.newNode(i));
+            });
+    		draw();
 		};
+        var search = function() {
+            if (!T.root) return;
+            let i = sToI(prompt("输入查询区间："));
+            if (!i) return;
+            let a = R.search(T, i);
+            if (a)
+                alert("重叠区间：[" + a.low + ", " + a.high + "]");
+            else
+                alert("查找不到重叠区间");
+        }
     </script>
 </body>
 </html>
