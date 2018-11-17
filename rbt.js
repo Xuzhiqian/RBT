@@ -57,7 +57,7 @@ var RBT = function() {
 		x = T.root;
 		while (!x.nil) {
 			y = x;
-			if (T.cpr(z.key ,x.key) < 0)
+			if (z.key.low < x.key.low)
 				x = x.left;
 			else
 				x = x.right;
@@ -65,7 +65,7 @@ var RBT = function() {
 		z.p = y;
 		if (y.nil)
 			T.root = z;
-		else if (T.cpr(z.key, y.key) < 0)
+		else if (z.key.low < y.key.low)
 			y.left = z;
 		else
 			y.right = z;
@@ -173,7 +173,7 @@ var RBT = function() {
 
 	R.search = function(T, i) {
 		x = T.root;
-		while (!x.nil && T.cpr(i, x.key) !== 0)
+		while (!x.nil && !(x.key.low <= i.high && i.low <= x.key.high))
 			if (!x.left.nil && x.left.max >= i.low)
 				x = x.left;
 			else 
@@ -181,14 +181,8 @@ var RBT = function() {
 		return x.key;
 	};
 
-	R.newTree = function(cpr) {
-		if (!cpr) cpr = function(a, b) {
-			if (a.high < b.low) return -1;
-			else if (a.low > b.high) return 1;
-			else return 0;
-		};
+	R.newTree = function() {
 		let T = {
-			cpr : cpr,
 			nil : {nil : 1, max : -Infinity, color:BLACK}
 		};
 		T.root = T.nil;
